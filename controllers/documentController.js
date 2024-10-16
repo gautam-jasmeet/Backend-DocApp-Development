@@ -143,6 +143,8 @@ export const getDocumentsByDepartment = async (req, res) => {
   }
 };
 
+//Correct from prevoius
+
 // Delete Documents By ID (Admin, Supervisor)
 export const deleteDocument = async (req, res) => {
   const query = "DELETE FROM documents WHERE id = ?";
