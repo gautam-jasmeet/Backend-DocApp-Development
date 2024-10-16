@@ -91,11 +91,8 @@ const insertDocument = async (
   file
 ) => {
   const fileUrl = `/uploads/${encodeURIComponent(file.originalname)}`;
-  const queryDoc = `
-    INSERT INTO documents (fileNo, filename, fileVersion, category, status, fileUrl, department, designation, shift) 
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-  `;
-
+  const queryDoc = `INSERT INTO documents (fileNo, filename, fileVersion, category, status, fileUrl, department, designation, shift) 
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`;
   try {
     await queryDb(queryDoc, [
       fileNo,
@@ -114,15 +111,14 @@ const insertDocument = async (
   }
 };
 
-// Get All Documents (Admin)
+// Get All Documents(Admin)
 export const getAllDocuments = async (req, res) => {
   const query = "SELECT * FROM documents";
-
   try {
     const result = await queryDb(query);
     res.status(200).json(result); // OK
   } catch (err) {
-    res.status(500).json({ error: err.message }); // Internal Server Error
+    return res.status(500).json({ error: err.message }); // Internal Server Error
   }
 };
 
@@ -143,12 +139,10 @@ export const getDocumentsByDepartment = async (req, res) => {
   }
 };
 
-//Correct from prevoius
+//Delete Documents by ID(Admin, Supervisor)
 
-// Delete Documents By ID (Admin, Supervisor)
 export const deleteDocument = async (req, res) => {
   const query = "DELETE FROM documents WHERE id = ?";
-
   try {
     const result = await queryDb(query, [req.params.id]);
     if (result.affectedRows > 0) {
@@ -157,23 +151,21 @@ export const deleteDocument = async (req, res) => {
       res.status(404).json({ message: "Document not found" }); //Not Found
     }
   } catch (err) {
-    res.status(500).json({ error: err.message }); //Internal Server Error
+    return res.status(500).json({ error: err.message }); //Internal Server Error
   }
 };
 
-// Update Document by ID (Admin, Supervisor)
+//Update Documents Status by ID(Admin)
 export const updateDocumentStatus = async (req, res) => {
-  const { status } = req.body;
   const query = "UPDATE documents SET status = ? WHERE id = ?";
-
   try {
-    const result = await queryDb(query, [status, req.params.id]);
+    const result = await queryDb(query, [req.body.status, req.params.id]);
     if (result.affectedRows > 0) {
       res.status(200).json({ message: "Document status updated successfully" }); //OK
     } else {
       res.status(404).json({ message: "Document not found" }); //Not Found
     }
   } catch (err) {
-    res.status(500).json({ error: err.message }); //Internal Server Error
+    return res.status(500).json({ error: err.message }); //Internal Server Error
   }
 };
