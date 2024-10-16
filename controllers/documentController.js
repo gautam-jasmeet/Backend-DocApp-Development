@@ -126,7 +126,7 @@ export const getAllDocuments = async (req, res) => {
 export const getDocumentsByDepartment = async (req, res) => {
   const query = "SELECT * FROM documents WHERE department = ?";
   try {
-    const result = await queryDb(query, [req.user.department]);
+    const result = await queryDb(query, [req.params.department]);
     if (result.length === 0) {
       return res
         .status(404)
