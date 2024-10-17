@@ -10,7 +10,7 @@ import hrRoutes from "./routes/hrRoutes.js";
 dotenv.config();
 
 const app = express();
-app.use(cors());
+app.use(cors({ origin: "*" })); // Allow requests from any origin
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
@@ -20,7 +20,7 @@ app.use("/joining", joiningRoutes); // Use joining routes
 app.use("/hr", hrRoutes);
 app.use("/uploads", express.static("uploads"));
 
-//rest api
+// REST API
 app.get("/", (req, res) => {
   res.send("<h1>Welcome to Document App</h1>");
 });
