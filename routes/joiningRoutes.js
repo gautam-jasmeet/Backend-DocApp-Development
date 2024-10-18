@@ -1,5 +1,6 @@
 import express from "express";
 import {
+  deleteJoiningForm,
   fillJoiningForm,
   getJoiningForms,
   updateJoiningForm,
@@ -40,6 +41,15 @@ router.put(
   checkHRDepartment,
   upload.single("photo"), // If a new photo is uploaded
   updateJoiningForm
+);
+
+// Delete joining form(HR Supervisor)
+router.delete(
+  "/:id",
+  authenticateToken,
+  checkRole(["Supervisor"]),
+  checkHRDepartment,
+  deleteJoiningForm
 );
 
 export default router;
