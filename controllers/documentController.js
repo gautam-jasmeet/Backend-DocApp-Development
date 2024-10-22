@@ -18,11 +18,11 @@ export const uploadDocument = async (req, res) => {
 
   try {
     // Ensure Admin gets the department from the 'users' table
-    if (req.user.designation === "Admin") {
+    if (req.user.designation === "Admin" || req.user.department === "Quality") {
       if (!department) {
         return res
           .status(400)
-          .json({ error: "Admin must specify a department" }); // Bad Request
+          .json({ error: "Admin and Quality must specify a department" }); // Bad Request
       }
 
       // Query to check if the department exists in the 'users' table
