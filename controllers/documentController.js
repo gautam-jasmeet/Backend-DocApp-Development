@@ -117,12 +117,12 @@ export const getAllDocuments = async (req, res) => {
   }
 };
 
-// Get Documents by Department (Supervisor, Worker)
+// Get Documents by Department (Admin,Supervisor, Worker)
 export const getDocumentsByDepartment = async (req, res) => {
   const query = "SELECT * FROM documents WHERE department = ?";
 
   try {
-    const [result] = await pool.query(query, [req.user.department]);
+    const [result] = await pool.query(query, [req.params.department]);
     if (result.length === 0) {
       return res
         .status(404)
