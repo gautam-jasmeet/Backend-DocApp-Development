@@ -81,3 +81,94 @@ export const deleteTrainingVideo = async (req, res) => {
     return res.status(500).json({ error: err.message }); // Internal Server Error
   }
 };
+
+// Create Question Paper
+export const createQuestionPaper = async (req, res) => {
+  const {
+    questionNo,
+    question,
+    option1,
+    option2,
+    option3,
+    option4,
+    correctOption,
+    paperNo,
+  } = req.body;
+
+  // Check if all required fields are provided
+  if (
+    !questionNo ||
+    !question ||
+    !option1 ||
+    !option2 ||
+    !option3 ||
+    !option4 ||
+    !correctOption ||
+    !paperNo
+  ) {
+    return res.status(422).json({ error: "All fields are required" }); // Unprocessable Entity
+  }
+
+  try {
+    // Insert question paper details into the 'question_papers' table
+    await pool.query(
+      `
+      INSERT INTO question_papers (questionNo, question, option1, option2, option3, option4, correctOption, paperNo)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+      `,
+      [
+        questionNo,
+        question,
+        option1,
+        option2,
+        option3,
+        option4,
+        correctOption,
+        paperNo,
+      ]
+    );
+
+    res.status(201).json({ message: "Question paper created successfully" }); // Created
+  } catch (err) {
+    return res.status(500).json({ error: err.message }); // Internal Server Error
+  }
+};
+
+// Get All Question Papers
+export const getAllQuestionPapers = async (req, res) => {
+  try {
+    const [papers] = await pool.query("SELECT * FROM question_papers"); // Fetch all question papers
+
+    if (papers.length === 0) {
+      return res.status(404).json({ error: "No question papers found" }); // Not Found
+    }
+
+    res.status(200).json(papers); // OK
+  } catch (err) {
+    return res.status(500).json({ error: err.message }); // Internal Server Error
+  }
+};
+
+// Delete Question Paper
+export const deleteQuestionPaper = async (req, res) => {
+  const { id } = req.params; // Get the paper ID from the URL parameters
+
+  try {
+    // Check if the question paper exists before trying to delete it
+    const [paperCheck] = await pool.query(
+      "SELECT * FROM question_papers WHERE id = ?",
+      [id]
+    );
+
+    if (paperCheck.length === 0) {
+      return res.status(404).json({ error: "Question paper not found" }); // Not Found
+    }
+
+    // Proceed to delete the question paper
+    await pool.query("DELETE FROM question_papers WHERE id = ?", [id]);
+
+    res.status(200).json({ message: "Question paper deleted successfully" }); // OK
+  } catch (err) {
+    return res.status(500).json({ error: err.message }); // Internal Server Error
+  }
+};

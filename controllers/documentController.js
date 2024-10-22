@@ -17,7 +17,7 @@ export const uploadDocument = async (req, res) => {
   }
 
   try {
-    // Ensure Admin gets the department from the 'users' table
+    //  if (req.user.designation === "Admin" || req.user.department === "Quality") {
     if (req.user.designation === "Admin" || req.user.department === "Quality") {
       if (!department) {
         return res
