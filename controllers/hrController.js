@@ -85,6 +85,7 @@ export const deleteTrainingVideo = async (req, res) => {
 // Create Question Paper
 export const createQuestionPaper = async (req, res) => {
   const {
+    paperId,
     questionNo,
     question,
     option1,
@@ -92,19 +93,18 @@ export const createQuestionPaper = async (req, res) => {
     option3,
     option4,
     correctOption,
-    paperNo,
   } = req.body;
 
   // Check if all required fields are provided
   if (
+    !paperId ||
     !questionNo ||
     !question ||
     !option1 ||
     !option2 ||
     !option3 ||
     !option4 ||
-    !correctOption ||
-    !paperNo
+    !correctOption
   ) {
     return res.status(422).json({ error: "All fields are required" }); // Unprocessable Entity
   }
@@ -113,10 +113,11 @@ export const createQuestionPaper = async (req, res) => {
     // Insert question paper details into the 'question_papers' table
     await pool.query(
       `
-      INSERT INTO question_papers (questionNo, question, option1, option2, option3, option4, correctOption, paperNo)
+      INSERT INTO question_papers ( paperId, questionNo, question, option1, option2, option3, option4, correctOption)
       VALUES (?, ?, ?, ?, ?, ?, ?, ?)
       `,
       [
+        paperId,
         questionNo,
         question,
         option1,
@@ -124,7 +125,6 @@ export const createQuestionPaper = async (req, res) => {
         option3,
         option4,
         correctOption,
-        paperNo,
       ]
     );
 
