@@ -7,9 +7,7 @@ import {
 import upload from "../middleware/uploadMiddleware.js";
 import {
   createQuestionPaper,
-  deleteQuestionPaper,
   deleteTrainingVideo,
-  getAllQuestionPapers,
   getTrainingVideos,
   uploadTrainingVideo,
 } from "../controllers/hrController.js";
@@ -42,30 +40,46 @@ router.delete(
   deleteTrainingVideo
 );
 
-// Route to create a question paper(HR Supervisor only)
+// Route to create a question paper with file uploads
 router.post(
-  "/question-paper",
+  "/create-question-paper",
+  upload.fields([
+    { name: "question", maxCount: 1 },
+    { name: "option1", maxCount: 1 },
+    { name: "option2", maxCount: 1 },
+    { name: "option3", maxCount: 1 },
+    { name: "option4", maxCount: 1 },
+  ]),
+  createQuestionPaper,
   authenticateToken,
   checkRole(["Supervisor"]),
-  checkHRDepartment,
-  createQuestionPaper
+  checkHRDepartment
 );
 
-// Route to get all question papers(Admin, Supervisor, Worker)
-router.get(
-  "/question-papers",
-  authenticateToken,
-  checkRole(["Admin", "Supervisor", "Worker"]),
-  getAllQuestionPapers
-);
+// // Route to create a question paper(HR Supervisor only)
+// router.post(
+//   "/question-paper",
+//   authenticateToken,
+//   checkRole(["Supervisor"]),
+//   checkHRDepartment,
+//   createQuestionPaper
+// );
 
-// Route to delete a question paper by ID(HR Supervisor)
-router.delete(
-  "/question-paper/:id",
-  authenticateToken,
-  checkRole(["Supervisor"]),
-  checkHRDepartment,
-  deleteQuestionPaper
-);
+// // Route to get all question papers(Admin, Supervisor, Worker)
+// router.get(
+//   "/question-papers",
+//   authenticateToken,
+//   checkRole(["Admin", "Supervisor", "Worker"]),
+//   getAllQuestionPapers
+// );
+
+// // Route to delete a question paper by ID(HR Supervisor)
+// router.delete(
+//   "/question-paper/:id",
+//   authenticateToken,
+//   checkRole(["Supervisor"]),
+//   checkHRDepartment,
+//   deleteQuestionPaper
+// );
 
 export default router;
