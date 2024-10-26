@@ -191,6 +191,24 @@ export const createQuestionPaper = async (req, res) => {
   }
 };
 
+// // Get All Question Papers
+// export const getAllQuestionPapers = async (req, res) => {
+//   try {
+//     // Query to select all question papers
+//     const [result] = await pool.query("SELECT * FROM question_papers");
+
+//     // Check if there are any question papers
+//     if (result.length === 0) {
+//       return res.status(404).json({ error: "No question papers found" });
+//     }
+
+//     // Respond with the list of question papers
+//     res.status(200).json({ data: result });
+//   } catch (err) {
+//     res.status(500).json({ error: err.message });
+//   }
+// };
+
 // Get All Question Papers
 export const getAllQuestionPapers = async (req, res) => {
   try {
@@ -202,8 +220,20 @@ export const getAllQuestionPapers = async (req, res) => {
       return res.status(404).json({ error: "No question papers found" });
     }
 
-    // Respond with the list of question papers
-    res.status(200).json({ data: result });
+    // Group questions by paperId with formatted key "PaperId - {paperId}"
+    const groupedQuestions = result.reduce((acc, question) => {
+      const { paperId, ...questionData } = question;
+      const paperKey = `PaperId - ${paperId}`;
+
+      if (!acc[paperKey]) {
+        acc[paperKey] = [];
+      }
+      acc[paperKey].push(questionData);
+      return acc;
+    }, {});
+
+    // Respond with the grouped question papers
+    res.status(200).json({ data: groupedQuestions });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
