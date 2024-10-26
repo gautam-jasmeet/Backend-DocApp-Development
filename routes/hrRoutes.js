@@ -9,6 +9,7 @@ import {
   createQuestionPaper,
   deleteQuestionPaper,
   deleteTrainingVideo,
+  getAllQuestionPapers,
   getQuestionPaper,
   getTrainingVideos,
   uploadTrainingVideo,
@@ -42,22 +43,7 @@ router.delete(
   deleteTrainingVideo
 );
 
-// // Route to create a question paper with file uploads
-// router.post(
-//   "/create-question-paper",
-//   upload.fields([
-//     { name: "question", maxCount: 1 },
-//     { name: "option1", maxCount: 1 },
-//     { name: "option2", maxCount: 1 },
-//     { name: "option3", maxCount: 1 },
-//     { name: "option4", maxCount: 1 },
-//   ]),
-//   createQuestionPaper,
-//   authenticateToken,
-//   checkRole(["Supervisor"]),
-//   checkHRDepartment
-// );
-
+// Route to create a question paper with file uploads
 // Define the route for creating a question paper
 router.post(
   "/create-question-paper",
@@ -72,6 +58,14 @@ router.post(
   authenticateToken,
   checkRole(["Supervisor"]),
   checkHRDepartment
+);
+
+// Get all question papers
+router.get(
+  "/get-question-paper",
+  getAllQuestionPapers,
+  authenticateToken,
+  checkRole(["Supervisor", "Admin", "Worker"])
 );
 
 // Get question paper by paperId

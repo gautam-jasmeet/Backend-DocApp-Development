@@ -191,6 +191,24 @@ export const createQuestionPaper = async (req, res) => {
   }
 };
 
+// Get All Question Papers
+export const getAllQuestionPapers = async (req, res) => {
+  try {
+    // Query to select all question papers
+    const [result] = await pool.query("SELECT * FROM question_papers");
+
+    // Check if there are any question papers
+    if (result.length === 0) {
+      return res.status(404).json({ error: "No question papers found" });
+    }
+
+    // Respond with the list of question papers
+    res.status(200).json({ data: result });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
 // Get Question Paper by paperId
 export const getQuestionPaper = async (req, res) => {
   const { paperId } = req.params;
