@@ -6,12 +6,16 @@ import {
 } from "../middleware/authMiddleware.js";
 import upload from "../middleware/uploadMiddleware.js";
 import {
+  assignPaperToEmployee,
   createQuestionPaper,
   deleteQuestionPaper,
   deleteTrainingVideo,
+  getAllAssignedPapers,
   getAllQuestionPapers,
+  getAssignedPapersByPunchId,
   getQuestionPaper,
   getTrainingVideos,
+  updateTaskStatus,
   uploadTrainingVideo,
 } from "../controllers/hrController.js";
 
@@ -80,6 +84,42 @@ router.get(
 router.delete(
   "/delete-question-paper/:paperId",
   deleteQuestionPaper,
+  authenticateToken,
+  checkRole(["Supervisor"]),
+  checkHRDepartment
+);
+
+// Add route for assigning paper
+router.post(
+  "/assign-paper",
+  assignPaperToEmployee,
+  authenticateToken,
+  checkRole(["Supervisor"]),
+  checkHRDepartment
+);
+
+// Get assigned papers by punchId
+router.get(
+  "/assigned-paper/:punchId",
+  getAssignedPapersByPunchId,
+  authenticateToken,
+  checkRole(["Supervisor"]),
+  checkHRDepartment
+);
+
+// Get assigned papers
+router.get(
+  "/assigned-paper",
+  getAllAssignedPapers,
+  authenticateToken,
+  checkRole(["Supervisor"]),
+  checkHRDepartment
+);
+
+// Update task status
+router.put(
+  "/update-task-status/:id",
+  updateTaskStatus,
   authenticateToken,
   checkRole(["Supervisor"]),
   checkHRDepartment

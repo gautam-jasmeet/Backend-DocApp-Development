@@ -279,3 +279,151 @@ export const deleteQuestionPaper = async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 };
+
+// Assign Paper to Employee
+export const assignPaperToEmployee = async (req, res) => {
+  const { employeeId, paperId, taskStatus = "inactive" } = req.body; // Default taskStatus is 'inactive'
+
+  // Validate required fields
+  if (!employeeId || !paperId) {
+    return res.status(422).json({
+      error: "Employee ID and Paper ID are required",
+    }); // Unprocessable Entity
+  }
+
+  try {
+    // Check if the employee exists
+    const [employeeCheck] = await pool.query(
+      "SELECT * FROM users WHERE employeeId = ?",
+      [employeeId]
+    );
+
+    if (employeeCheck.length === 0) {
+      return res.status(404).json({ error: "Employee not found" });
+    }
+
+    // Check if the paper exists
+    const [paperCheck] = await pool.query(
+      "SELECT * FROM question_papers WHERE paperId = ?",
+      [paperId]
+    );
+
+    if (paperCheck.length === 0) {
+      return res.status(404).json({ error: "Question paper not found" });
+    }
+
+    // Insert the assignment into the 'assigned_papers' table
+    await pool.query(
+      `
+      INSERT INTO assigned_papers (employeeId, paperId, taskStatus)
+      VALUES (?, ?, ?)
+      `,
+      [employeeId, paperId, taskStatus]
+    );
+
+    res.status(201).json({
+      message: "Paper assigned to employee successfully",
+      data: {
+        employeeId,
+        paperId,
+        taskStatus,
+      },
+    }); // Created
+  } catch (err) {
+    return res.status(500).json({ error: err.message }); // Internal Server Error
+  }
+};
+
+// Get all assigned papers
+export const getAllAssignedPapers = async (req, res) => {
+  try {
+    const [assignedPapers] = await pool.query(`
+     SELECT * FROM assigned_papers
+    `);
+
+    res.status(200).json({
+      message: "Assigned papers retrieved successfully",
+      data: assignedPapers,
+    }); // OK
+  } catch (err) {
+    return res.status(500).json({ error: err.message }); // Internal Server Error
+  }
+};
+
+// Get Assigned Papers for Employee using punchId
+export const getAssignedPapersByPunchId = async (req, res) => {
+  const { punchId } = req.params; // Get punchId from request parameters
+
+  // Validate required fields
+  if (!punchId) {
+    return res.status(422).json({
+      error: "Punch ID is required",
+    });
+  }
+
+  try {
+    // Retrieve employeeId using punchId
+    const [employeeCheck] = await pool.query(
+      "SELECT employeeId FROM users WHERE punchId = ?",
+      [punchId]
+    );
+
+    if (employeeCheck.length === 0) {
+      return res.status(404).json({ error: "Employee not found" });
+    }
+
+    const employeeId = employeeCheck[0].employeeId; // Get employeeId from the response
+
+    // Get assigned papers for the employee
+    const [assignedPapers] = await pool.query(
+      `
+      SELECT ap.*, qp.paperTitle 
+      FROM assigned_papers ap 
+      JOIN question_papers qp ON ap.paperId = qp.paperId 
+      WHERE ap.employeeId = ?
+      `,
+      [employeeId]
+    );
+
+    if (assignedPapers.length === 0) {
+      return res
+        .status(404)
+        .json({ message: "No papers assigned to this employee" });
+    }
+
+    res.status(200).json({
+      message: "Assigned papers retrieved successfully",
+      data: assignedPapers,
+    });
+  } catch (err) {
+    return res.status(500).json({ error: err.message });
+  }
+};
+
+// Update Task Status for Assigned Paper
+export const updateTaskStatus = async (req, res) => {
+  const { id } = req.params; // Assume you pass the assignment ID as a URL parameter
+  const { taskStatus } = req.body;
+
+  try {
+    // Check if the assignment exists
+    const [assignmentCheck] = await pool.query(
+      "SELECT * FROM assigned_papers WHERE id = ?",
+      [id]
+    );
+
+    if (assignmentCheck.length === 0) {
+      return res.status(404).json({ error: "Assignment not found" });
+    }
+
+    // Update the task status
+    await pool.query("UPDATE assigned_papers SET taskStatus = ? WHERE id = ?", [
+      taskStatus,
+      id,
+    ]);
+
+    res.status(200).json({ message: "Task status updated successfully" });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
