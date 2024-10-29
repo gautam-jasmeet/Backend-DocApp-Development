@@ -10,12 +10,10 @@ import {
   createQuestionPaper,
   deleteQuestionPaper,
   deleteTrainingVideo,
-  getAllAssignedPapers,
   getAllQuestionPapers,
-  getAssignedPapersByPunchId,
+  getAssignedPapersByEmployeeId,
   getQuestionPaper,
   getTrainingVideos,
-  updateTaskStatus,
   uploadTrainingVideo,
 } from "../controllers/hrController.js";
 
@@ -98,28 +96,10 @@ router.post(
   checkHRDepartment
 );
 
-// Get assigned papers by punchId
+// Get assigned papers by Employee ID
 router.get(
-  "/assigned-paper/:punchId",
-  getAssignedPapersByPunchId,
-  authenticateToken,
-  checkRole(["Supervisor"]),
-  checkHRDepartment
-);
-
-// Get assigned papers
-router.get(
-  "/assigned-paper",
-  getAllAssignedPapers,
-  authenticateToken,
-  checkRole(["Supervisor"]),
-  checkHRDepartment
-);
-
-// Update task status
-router.put(
-  "/update-task-status/:id",
-  updateTaskStatus,
+  "/assign-paper/:employeeId",
+  getAssignedPapersByEmployeeId,
   authenticateToken,
   checkRole(["Supervisor"]),
   checkHRDepartment
