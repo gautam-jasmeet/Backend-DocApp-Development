@@ -191,44 +191,6 @@ export const createQuestionPaper = async (req, res) => {
   }
 };
 
-// // Get All Question Papers
-// export const getAllQuestionPapers = async (req, res) => {
-//   try {
-//     // Query to select all question papers
-//     const [result] = await pool.query("SELECT * FROM question_papers");
-
-//     // Check if there are any question papers
-//     if (result.length === 0) {
-//       return res.status(404).json({ error: "No question papers found" });
-//     }
-
-//     // Group questions by paperId
-//     const groupedQuestions = result.reduce((acc, question) => {
-//       const { paperId, ...questionData } = question;
-
-//       // Create a new entry if it doesn't exist
-//       if (!acc[paperId]) {
-//         acc[paperId] = {
-//           PaperId: paperId,
-//           Questions: [],
-//         };
-//       }
-
-//       // Push the question data into the Questions array
-//       acc[paperId].Questions.push(questionData);
-//       return acc;
-//     }, {});
-
-//     // Convert the object to an array
-//     const response = Object.values(groupedQuestions);
-
-//     // Respond with the grouped question papers
-//     res.status(200).json({ data: response });
-//   } catch (err) {
-//     res.status(500).json({ error: err.message });
-//   }
-// };
-
 // Get All Question Papers
 export const getAllQuestionPapers = async (req, res) => {
   try {
