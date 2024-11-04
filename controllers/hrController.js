@@ -281,15 +281,111 @@ export const deleteQuestionPaper = async (req, res) => {
   }
 };
 
-// Assign Paper to Employee
+// // Assign Paper to Employee
+// export const assignPaperToEmployee = async (req, res) => {
+//   const { employeeId, paperId } = req.body; // Remove taskStatus
+
+//   // Validate required fields
+//   if (!employeeId || !paperId) {
+//     return res.status(422).json({
+//       error: "Employee ID and Paper ID are required",
+//     }); // Unprocessable Entity
+//   }
+
+//   try {
+//     // Check if the employee exists
+//     const [employeeCheck] = await pool.query(
+//       "SELECT * FROM users WHERE employeeId = ?",
+//       [employeeId]
+//     );
+
+//     if (employeeCheck.length === 0) {
+//       return res.status(404).json({ error: "Employee not found" });
+//     }
+
+//     // Check if the paper exists
+//     const [paperCheck] = await pool.query(
+//       "SELECT * FROM question_papers WHERE paperId = ?",
+//       [paperId]
+//     );
+
+//     if (paperCheck.length === 0) {
+//       return res.status(404).json({ error: "Question paper not found" });
+//     }
+
+//     // Insert the assignment into the 'assigned_papers' table without taskStatus
+//     await pool.query(
+//       `
+//       INSERT INTO assigned_papers (employeeId, paperId)
+//       VALUES (?, ?)
+//       `,
+//       [employeeId, paperId]
+//     );
+
+//     res.status(201).json({
+//       message: "Paper assigned to employee successfully",
+//     });
+//   } catch (err) {
+//     return res.status(500).json({ error: err.message }); // Internal Server Error
+//   }
+// };
+
+// // Get Assigned Papers by Employee ID
+// export const getAssignedPapersByEmployeeId = async (req, res) => {
+//   const { employeeId } = req.params;
+
+//   // Validate required fields
+//   if (!employeeId) {
+//     return res.status(422).json({
+//       error: "Employee ID is required",
+//     });
+//   }
+
+//   try {
+//     // Check if the employee exists
+//     const [employeeCheck] = await pool.query(
+//       "SELECT * FROM users WHERE employeeId = ?",
+//       [employeeId]
+//     );
+
+//     if (employeeCheck.length === 0) {
+//       return res.status(404).json({ error: "Employee not found" });
+//     }
+
+//     // Retrieve assigned papers for the employee without using JOIN
+//     const [assignedPapers] = await pool.query(
+//       `
+//       SELECT *
+//       FROM assigned_papers
+//       WHERE employeeId = ?
+//       `,
+//       [employeeId]
+//     );
+
+//     if (assignedPapers.length === 0) {
+//       return res
+//         .status(404)
+//         .json({ message: "No papers assigned to this employee" });
+//     }
+
+//     res.status(200).json({
+//       message: "Assigned papers retrieved successfully",
+//       data: assignedPapers,
+//     });
+//   } catch (err) {
+//     return res.status(500).json({ error: err.message });
+//   }
+// };
+
+// Assign Paper to Employee and retrieve paper details
 export const assignPaperToEmployee = async (req, res) => {
-  const { employeeId, paperId } = req.body; // Remove taskStatus
+  const { employeeId, paperId } = req.body;
 
   // Validate required fields
   if (!employeeId || !paperId) {
     return res.status(422).json({
       error: "Employee ID and Paper ID are required",
-    }); // Unprocessable Entity
+    });
   }
 
   try {
@@ -313,7 +409,7 @@ export const assignPaperToEmployee = async (req, res) => {
       return res.status(404).json({ error: "Question paper not found" });
     }
 
-    // Insert the assignment into the 'assigned_papers' table without taskStatus
+    // Insert the assignment into the 'assigned_papers' table
     await pool.query(
       `
       INSERT INTO assigned_papers (employeeId, paperId)
@@ -322,15 +418,22 @@ export const assignPaperToEmployee = async (req, res) => {
       [employeeId, paperId]
     );
 
+    // Retrieve the details of the assigned paper
+    const [assignedPaperDetails] = await pool.query(
+      "SELECT * FROM question_papers WHERE paperId = ?",
+      [paperId]
+    );
+
     res.status(201).json({
       message: "Paper assigned to employee successfully",
+      // assignedPaper: assignedPaperDetails[0], // Send paper details in response
     });
   } catch (err) {
-    return res.status(500).json({ error: err.message }); // Internal Server Error
+    return res.status(500).json({ error: err.message });
   }
 };
 
-// Get Assigned Papers by Employee ID
+// Get Assigned Papers by Employee ID, including question paper details
 export const getAssignedPapersByEmployeeId = async (req, res) => {
   const { employeeId } = req.params;
 
@@ -342,22 +445,28 @@ export const getAssignedPapersByEmployeeId = async (req, res) => {
   }
 
   try {
-    // Check if the employee exists
-    const [employeeCheck] = await pool.query(
-      "SELECT * FROM users WHERE employeeId = ?",
-      [employeeId]
-    );
-
-    if (employeeCheck.length === 0) {
-      return res.status(404).json({ error: "Employee not found" });
-    }
-
-    // Retrieve assigned papers for the employee without using JOIN
+    // Check if the employee has any assigned papers
     const [assignedPapers] = await pool.query(
       `
-      SELECT * 
-      FROM assigned_papers 
-      WHERE employeeId = ?
+      SELECT 
+        ap.paperId, 
+        qp.questionNo, 
+        qp.question, 
+        qp.questionImg,
+        qp.option1, 
+        qp.option1Img,
+        qp.option2, 
+        qp.option2Img,
+        qp.option3, 
+        qp.option3Img,
+        qp.option4, 
+        qp.option4Img,
+        qp.correctOption, 
+        qp.department
+      FROM assigned_papers AS ap
+      JOIN question_papers AS qp ON ap.paperId = qp.paperId
+      WHERE ap.employeeId = ?
+      GROUP BY qp.questionNo, ap.paperId
       `,
       [employeeId]
     );
@@ -365,13 +474,56 @@ export const getAssignedPapersByEmployeeId = async (req, res) => {
     if (assignedPapers.length === 0) {
       return res
         .status(404)
-        .json({ message: "No papers assigned to this employee" });
+        .json({ message: "No papers assigned to this employee ID" });
     }
 
-    res.status(200).json({
-      message: "Assigned papers retrieved successfully",
-      data: assignedPapers,
-    });
+    // Group papers by PaperId
+    const papersMap = assignedPapers.reduce((acc, paper) => {
+      // If the paperId does not exist in the accumulator, create a new entry
+      if (!acc[paper.paperId]) {
+        acc[paper.paperId] = {
+          PaperId: String(paper.paperId), // Convert PaperId to string
+          Department: paper.department,
+          Questions: [],
+        };
+      }
+      // Push the question details to the corresponding paper
+      acc[paper.paperId].Questions.push({
+        questionNo: paper.questionNo,
+        questionText: paper.question,
+        questionImg: paper.questionImg,
+        options: {
+          // option1: { text: paper.option1, img: paper.option1Img },
+          // option2: { text: paper.option2, img: paper.option2Img },
+          // option3: { text: paper.option3, img: paper.option3Img },
+          // option4: { text: paper.option4, img: paper.option4Img },
+
+          option1text: paper.option1,
+          option1img: paper.option1Img,
+          option2text: paper.option2,
+          option2img: paper.option2Img,
+          option3text: paper.option3,
+          option3img: paper.option3Img,
+          option4text: paper.option4,
+          option4img: paper.option4Img,
+        },
+        correctOption: paper.correctOption,
+      });
+
+      return acc;
+    }, {});
+
+    // Convert the papersMap object into an array
+    const uniquePapers = Object.values(papersMap);
+
+    // Create response
+    const response = {
+      EmployeeId: employeeId,
+      Papers: uniquePapers,
+    };
+
+    // Respond with the assigned papers and question paper details
+    res.status(200).json({ data: response });
   } catch (err) {
     return res.status(500).json({ error: err.message });
   }
