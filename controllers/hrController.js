@@ -281,102 +281,6 @@ export const deleteQuestionPaper = async (req, res) => {
   }
 };
 
-// // Assign Paper to Employee
-// export const assignPaperToEmployee = async (req, res) => {
-//   const { employeeId, paperId } = req.body; // Remove taskStatus
-
-//   // Validate required fields
-//   if (!employeeId || !paperId) {
-//     return res.status(422).json({
-//       error: "Employee ID and Paper ID are required",
-//     }); // Unprocessable Entity
-//   }
-
-//   try {
-//     // Check if the employee exists
-//     const [employeeCheck] = await pool.query(
-//       "SELECT * FROM users WHERE employeeId = ?",
-//       [employeeId]
-//     );
-
-//     if (employeeCheck.length === 0) {
-//       return res.status(404).json({ error: "Employee not found" });
-//     }
-
-//     // Check if the paper exists
-//     const [paperCheck] = await pool.query(
-//       "SELECT * FROM question_papers WHERE paperId = ?",
-//       [paperId]
-//     );
-
-//     if (paperCheck.length === 0) {
-//       return res.status(404).json({ error: "Question paper not found" });
-//     }
-
-//     // Insert the assignment into the 'assigned_papers' table without taskStatus
-//     await pool.query(
-//       `
-//       INSERT INTO assigned_papers (employeeId, paperId)
-//       VALUES (?, ?)
-//       `,
-//       [employeeId, paperId]
-//     );
-
-//     res.status(201).json({
-//       message: "Paper assigned to employee successfully",
-//     });
-//   } catch (err) {
-//     return res.status(500).json({ error: err.message }); // Internal Server Error
-//   }
-// };
-
-// // Get Assigned Papers by Employee ID
-// export const getAssignedPapersByEmployeeId = async (req, res) => {
-//   const { employeeId } = req.params;
-
-//   // Validate required fields
-//   if (!employeeId) {
-//     return res.status(422).json({
-//       error: "Employee ID is required",
-//     });
-//   }
-
-//   try {
-//     // Check if the employee exists
-//     const [employeeCheck] = await pool.query(
-//       "SELECT * FROM users WHERE employeeId = ?",
-//       [employeeId]
-//     );
-
-//     if (employeeCheck.length === 0) {
-//       return res.status(404).json({ error: "Employee not found" });
-//     }
-
-//     // Retrieve assigned papers for the employee without using JOIN
-//     const [assignedPapers] = await pool.query(
-//       `
-//       SELECT *
-//       FROM assigned_papers
-//       WHERE employeeId = ?
-//       `,
-//       [employeeId]
-//     );
-
-//     if (assignedPapers.length === 0) {
-//       return res
-//         .status(404)
-//         .json({ message: "No papers assigned to this employee" });
-//     }
-
-//     res.status(200).json({
-//       message: "Assigned papers retrieved successfully",
-//       data: assignedPapers,
-//     });
-//   } catch (err) {
-//     return res.status(500).json({ error: err.message });
-//   }
-// };
-
 // Assign Paper to Employee and retrieve paper details
 export const assignPaperToEmployee = async (req, res) => {
   const { employeeId, paperId } = req.body;
@@ -526,5 +430,64 @@ export const getAssignedPapersByEmployeeId = async (req, res) => {
     res.status(200).json({ data: response });
   } catch (err) {
     return res.status(500).json({ error: err.message });
+  }
+};
+
+// Post Score
+export const postScore = async (req, res) => {
+  const { employeeId, paperId, correctQuestions, incorrectQuestions } =
+    req.body;
+
+  // Validate required fields
+  if (
+    !employeeId ||
+    !paperId ||
+    correctQuestions === undefined ||
+    incorrectQuestions === undefined
+  ) {
+    return res.status(422).json({
+      error:
+        "Employee ID, Paper ID, Correct Questions, and Incorrect Questions are required",
+    });
+  }
+
+  try {
+    // Check if the employee exists
+    const [employeeCheck] = await pool.query(
+      "SELECT * FROM users WHERE employeeId = ?",
+      [employeeId]
+    );
+
+    if (employeeCheck.length === 0) {
+      return res.status(404).json({ error: "Employee not found" });
+    }
+
+    // Check if the paper exists
+    const [paperCheck] = await pool.query(
+      "SELECT * FROM question_papers WHERE paperId = ?",
+      [paperId]
+    );
+
+    if (paperCheck.length === 0) {
+      return res.status(404).json({ error: "Question paper not found" });
+    }
+
+    // Insert the correct and incorrect questions into the 'employee_scores' table
+    await pool.query(
+      `
+      INSERT INTO employee_scores (employeeId, paperId, correctQuestions, incorrectQuestions)
+      VALUES (?, ?, ?, ?)
+      `,
+      [employeeId, paperId, correctQuestions, incorrectQuestions]
+    );
+
+    // Prepare the response
+    const response = {
+      message: "Score recorded successfully",
+    };
+
+    res.status(201).json(response); // Created
+  } catch (err) {
+    return res.status(500).json({ error: err.message }); // Internal Server Error
   }
 };
